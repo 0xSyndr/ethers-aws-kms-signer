@@ -1,4 +1,5 @@
 import { ethers, UnsignedTransaction } from "ethers";
+import { TypedDataDomain, TypedDataField } from "@ethersproject/abstract-signer";
 import { getPublicKey, getEthereumAddress, requestKmsSignature, determineCorrectV } from "./util/aws-kms-utils";
 
 export interface AwsKmsSignerCredentials {
@@ -41,6 +42,11 @@ export class AwsKmsSigner extends ethers.Signer {
 
   async signMessage(message: string | ethers.utils.Bytes): Promise<string> {
     return this._signDigest(ethers.utils.hashMessage(message));
+  }
+
+  async signTypedData(domain: TypedDataDomain, types: Record<string, Array<TypedDataField>>, value:  Record<string, any>): Promise<string> {
+    const hash = ethers.utils._TypedDataEncoder.hash(domain, types, value);
+    return this._signDigest(hash);
   }
 
   async signTransaction(transaction: ethers.utils.Deferrable<ethers.providers.TransactionRequest>): Promise<string> {
